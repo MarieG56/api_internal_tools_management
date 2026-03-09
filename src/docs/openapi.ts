@@ -6,7 +6,10 @@ const openapiSpec = {
     description: "REST API for internal SaaS tools management (PostgreSQL + Prisma).",
   },
   servers: [{ url: "http://localhost:3000" }],
-  tags: [{ name: "Tools", description: "Tools catalog management" }],
+  tags: [
+    { name: "Tools", description: "Tools catalog management" },
+    { name: "Analytics", description: "Cost and usage analytics endpoints" },
+  ],
   components: {
     schemas: {
       ToolListItem: {
@@ -85,6 +88,67 @@ const openapiSpec = {
         properties: {
           error: { type: "string", example: "Internal server error" },
           message: { type: "string" },
+        },
+      },
+      DepartmentCostItem: {
+        type: "object",
+        properties: {
+          department: { type: "string" },
+          total_cost: { type: "number" },
+          tools_count: { type: "integer" },
+          total_users: { type: "integer" },
+          average_cost_per_tool: { type: "number" },
+          cost_percentage: { type: "number" },
+        },
+      },
+      ExpensiveToolItem: {
+        type: "object",
+        properties: {
+          id: { type: "integer" },
+          name: { type: "string" },
+          monthly_cost: { type: "number" },
+          active_users_count: { type: "integer" },
+          cost_per_user: { type: "number" },
+          department: { type: "string" },
+          vendor: { type: "string", nullable: true },
+          efficiency_rating: { type: "string", enum: ["excellent", "good", "average", "low"] },
+        },
+      },
+      CategoryAnalyticsItem: {
+        type: "object",
+        properties: {
+          category_name: { type: "string" },
+          tools_count: { type: "integer" },
+          total_cost: { type: "number" },
+          total_users: { type: "integer" },
+          percentage_of_budget: { type: "number" },
+          average_cost_per_user: { type: "number" },
+        },
+      },
+      LowUsageToolItem: {
+        type: "object",
+        properties: {
+          id: { type: "integer" },
+          name: { type: "string" },
+          monthly_cost: { type: "number" },
+          active_users_count: { type: "integer" },
+          cost_per_user: { type: "number" },
+          department: { type: "string" },
+          vendor: { type: "string", nullable: true },
+          warning_level: { type: "string", enum: ["low", "medium", "high"] },
+          potential_action: { type: "string" },
+        },
+      },
+      VendorSummaryItem: {
+        type: "object",
+        properties: {
+          vendor: { type: "string" },
+          tools_count: { type: "integer" },
+          total_monthly_cost: { type: "number" },
+          total_users: { type: "integer" },
+          departments: { type: "string" },
+          average_cost_per_user: { type: "number" },
+          vendor_efficiency: { type: "string", enum: ["excellent", "good", "average", "poor"] },
         },
       },
     },
@@ -273,6 +337,86 @@ const openapiSpec = {
               "application/json": { schema: { $ref: "#/components/schemas/NotFoundError" } },
             },
           },
+        },
+      },
+    },
+    "/api/analytics/department-costs": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Cost distribution by department",
+        parameters: [
+          {
+            name: "sort_by",
+            in: "query",
+            schema: { type: "string", enum: ["total_cost", "department"], default: "total_cost" },
+          },
+          {
+            name: "order",
+            in: "query",
+            schema: { type: "string", enum: ["asc", "desc"], default: "desc" },
+          },
+        ],
+        responses: {
+          200: { description: "Department costs analytics" },
+          400: {
+            description: "Invalid analytics parameter",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/ValidationError" } } },
+          },
+        },
+      },
+    },
+    "/api/analytics/expensive-tools": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Top most expensive tools",
+        parameters: [
+          { name: "limit", in: "query", schema: { type: "integer", default: 10, minimum: 1, maximum: 100 } },
+          { name: "min_cost", in: "query", schema: { type: "number", default: 0, minimum: 0 } },
+        ],
+        responses: {
+          200: { description: "Expensive tools analytics" },
+          400: {
+            description: "Invalid analytics parameter",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/ValidationError" } } },
+          },
+        },
+      },
+    },
+    "/api/analytics/tools-by-category": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Tools distribution by category",
+        responses: {
+          200: { description: "Category analytics" },
+        },
+      },
+    },
+    "/api/analytics/low-usage-tools": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Identify underutilized tools and savings potential",
+        parameters: [
+          {
+            name: "max_users",
+            in: "query",
+            schema: { type: "integer", default: 5, minimum: 0 },
+          },
+        ],
+        responses: {
+          200: { description: "Low usage tools analytics" },
+          400: {
+            description: "Invalid analytics parameter",
+            content: { "application/json": { schema: { $ref: "#/components/schemas/ValidationError" } } },
+          },
+        },
+      },
+    },
+    "/api/analytics/vendor-summary": {
+      get: {
+        tags: ["Analytics"],
+        summary: "Vendor-level summary and efficiency insights",
+        responses: {
+          200: { description: "Vendor analytics summary" },
         },
       },
     },

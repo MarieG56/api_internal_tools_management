@@ -46,6 +46,21 @@
 - `POST /api/tools`: create with business validations
 - `PUT /api/tools/:id`: partial update with validations and 404 handling
 
+## Analytics Approach (Part 2)
+- Analytics endpoints include only tools with `status = "active"` unless specified otherwise.
+- Calculations use explicit rounding rules:
+  - money values: 2 decimals
+  - percentages: 1 decimal
+- Division-by-zero is handled explicitly (for cost-per-user and efficiency indicators).
+- Tie-break rules for "most expensive/efficient" insights use alphabetical ordering.
+
+## Analytics Endpoints
+- `GET /api/analytics/department-costs`
+- `GET /api/analytics/expensive-tools`
+- `GET /api/analytics/tools-by-category`
+- `GET /api/analytics/low-usage-tools`
+- `GET /api/analytics/vendor-summary`
+
 ## Useful Scripts
 - `npm run dev`: development mode
 - `npm run build`: compile TypeScript to `dist/`

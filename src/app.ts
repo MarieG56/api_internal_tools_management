@@ -7,6 +7,7 @@ import openapiSpec from "./docs/openapi.js";
 import { httpLogger } from "./lib/logger.js";
 import errorHandler from "./middlewares/errorHandler.js";
 import notFound from "./middlewares/notFound.js";
+import analyticsRoutes from "./routes/analyticsRoutes.js";
 import toolRoutes from "./routes/toolRoutes.js";
 
 const app = express();
@@ -24,6 +25,7 @@ app.use("/api/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 app.use("/docs", swaggerUi.serve, swaggerUi.setup(openapiSpec));
 
 app.use("/api/tools", toolRoutes);
+app.use("/api/analytics", analyticsRoutes);
 
 app.use(notFound);
 app.use(errorHandler);
